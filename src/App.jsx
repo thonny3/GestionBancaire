@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Virement from "./components/Virement";
 import Dashboard from "./components/Dashboard";
 import Profile from "./components/Profile";
+import { Audit } from "./components/Audit";
 
 function App() {
 
@@ -25,7 +26,7 @@ function App() {
       <Route path="dashboard" element={<Dashboard />} />
       <Route path="client" element={<Client />} />
       <Route path="virement" element={<Virement />} />
-      <Route path="profile" element={<Profile user={user} />} />
+      <Route path="audit" element={<Audit/>} />
       </Route>
       </Routes>
     </Router>

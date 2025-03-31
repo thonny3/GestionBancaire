@@ -189,17 +189,12 @@ export default function HeaderAdmin() {
                 </ListItemSuffix>
               </Link>
             </ListItem>
-            <ListItem>
-              <ListItemPrefix>
-                <UserCircleIcon className="h-5 w-5" />
-              </ListItemPrefix>
-              <Link to="/profile">Profile</Link>
-            </ListItem>
+          
             <ListItem>
               <ListItemPrefix>
                 <Cog6ToothIcon className="h-5 w-5" />
               </ListItemPrefix>
-              <Link to="/settings">Parametre</Link>
+              <Link to="/audit">Audit</Link>
             </ListItem>
             <ListItem>
               <ListItemPrefix>

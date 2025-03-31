@@ -1,81 +1,126 @@
+import React, { useState, useEffect } from "react";
 import {
   UserGroupIcon,
   PlusCircleIcon,
   TrashIcon,
   PencilIcon,
+  BanknotesIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/solid";
-import { Typography, Chip, Card } from "@material-tailwind/react";
+import { Typography, Card } from "@material-tailwind/react";
 
 export default function Dashboard() {
+  const [dashboardData, setDashboardData] = useState({
+    audit: {
+      ajout: 0,
+      modification: 0,
+      suppression: 0
+    },
+    statistiques: {
+      totalClients: 0,
+      totalVirements: 0,
+      montantTotal: 0
+    }
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://localhost:3000/api/dashboard', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Erreur lors de la récupération des données');
+        }
+        
+        const data = await response.json();
+        setDashboardData(data);
+        setLoading(false);
+      } catch (err) {
+        console.error('Erreur:', err);
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // Définir les statistiques à afficher basées sur les données récupérées
   const stats = [
     {
       title: "Clients",
-      count: 120,
+      count: dashboardData.statistiques.totalClients,
       icon: <UserGroupIcon className="w-10 h-10 text-blue-500" />,
     },
     {
+      title: "Virements",
+      count: dashboardData.statistiques.totalVirements,
+      icon: <BanknotesIcon className="w-10 h-10 text-purple-500" />,
+    },
+    {
+      title: "Montant Total",
+      count: dashboardData.statistiques.montantTotal ? 
+        `${dashboardData.statistiques.montantTotal.toLocaleString()} €` : 
+        "0 €",
+      icon: <ArrowPathIcon className="w-10 h-10 text-indigo-500" />,
+    },
+    {
       title: "Ajouts",
-      count: 35,
+      count: dashboardData.audit.ajout,
       icon: <PlusCircleIcon className="w-10 h-10 text-green-500" />,
     },
     {
-      title: "Suppressions",
-      count: 15,
-      icon: <TrashIcon className="w-10 h-10 text-red-500" />,
-    },
-    {
       title: "Modifications",
-      count: 22,
+      count: dashboardData.audit.modification,
       icon: <PencilIcon className="w-10 h-10 text-yellow-500" />,
     },
+    {
+      title: "Suppressions",
+      count: dashboardData.audit.suppression,
+      icon: <TrashIcon className="w-10 h-10 text-red-500" />,
+    },
   ];
-  const TABLE_HEAD = ["N° Compte", "Nom", "Prénom", "Montant", "Action"];
 
-  const TABLE_ROWS = [
-    {
-      accountNumber: "12345",
-      firstName: "John",
-      lastName: "Doe",
-      amount: "$100",
-      action: "Ajout",
-    },
-    {
-      accountNumber: "67890",
-      firstName: "Jane",
-      lastName: "Smith",
-      amount: "$200",
-      action: "Suppression",
-    },
-    {
-      accountNumber: "11223",
-      firstName: "Alice",
-      lastName: "Brown",
-      amount: "$150",
-      action: "Modification",
-    },
-    {
-      accountNumber: "44556",
-      firstName: "Bob",
-      lastName: "Johnson",
-      amount: "$50",
-      action: "Ajout",
-    },
-    {
-      accountNumber: "78901",
-      firstName: "Charlie",
-      lastName: "Davis",
-      amount: "$120",
-      action: "Suppression",
-    },
-  ];
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 bg-red-100 text-red-700 rounded-lg">
+        <h2 className="text-xl font-bold">Erreur</h2>
+        <p>{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 p-6">
+      <Card className=" mb-6 bg-white shadow-lg">
+        <Typography variant="h4" className="font-semibold text-gray-800 mb-4">
+          Tableau de bord
+        </Typography>
+        <Typography variant="paragraph" className="text-gray-600 mb-4">
+          Bienvenue sur le tableau de bord de gestion bancaire. Voici un aperçu des statistiques actuelles.
+        </Typography>
+      </Card>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-6">
         {stats.map((stat, index) => (
           <div
             key={index}
-            className="bg-white shadow-lg rounded-2xl p-6 flex items-center space-x-6 border border-gray-200"
+            className="bg-white shadow-lg rounded-2xl p-6 flex items-center space-x-6 border border-gray-200 hover:shadow-xl transition-shadow duration-300"
           >
             <div className="p-4 bg-gray-100 rounded-full">{stat.icon}</div>
             <div>
@@ -87,101 +132,6 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
-      <Card className="h-full w-full bg-white shadow-lg mt-5">
-        <Typography variant="h4" className="font-semibold text-gray-800 ml-5">
-          Les 5 derniers mis à jour Virements
-        </Typography>
-        <table className="w-full min-w-max table-auto text-left mt-5">
-          <thead>
-            <tr>
-              {TABLE_HEAD.map((head) => (
-                <th
-                  key={head}
-                  className="border-b border-blue-gray-100 bg-blue-gray-50 p-4"
-                >
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="font-normal leading-none opacity-70"
-                  >
-                    {head}
-                  </Typography>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {TABLE_ROWS.map(
-              (
-                { accountNumber, firstName, lastName, amount, action },
-                index
-              ) => {
-                const isLast = index === TABLE_ROWS.length - 1;
-                const classes = isLast
-                  ? "p-4"
-                  : "p-4 border-b border-blue-gray-50";
-
-                return (
-                  <tr key={accountNumber}>
-                    <td className={classes}>
-                      <Typography
-                        variant="small"
-                        color="blue-gray"
-                        className="font-normal"
-                      >
-                        {accountNumber}
-                      </Typography>
-                    </td>
-                    <td className={classes}>
-                      <Typography
-                        variant="small"
-                        color="blue-gray"
-                        className="font-normal"
-                      >
-                        {firstName}
-                      </Typography>
-                    </td>
-                    <td className={classes}>
-                      <Typography
-                        variant="small"
-                        color="blue-gray"
-                        className="font-normal"
-                      >
-                        {lastName}
-                      </Typography>
-                    </td>
-                    <td className={classes}>
-                      <Typography
-                        variant="small"
-                        color="blue-gray"
-                        className="font-normal"
-                      >
-                        {amount}
-                      </Typography>
-                    </td>
-                    <td className={classes}>
-                      <span className="px-5">
-                        {" "}
-                        <Chip
-                          value={action}
-                          color={
-                            action === "Ajout"
-                              ? "green"
-                              : action === "Suppression"
-                              ? "red"
-                              : "blue"
-                          }
-                          className="capitalize w-22"
-                        />
-                      </span>
-                    </td>
-                  </tr>
-                );
-              }
-            )}
-          </tbody>
-        </table>
-      </Card>
     </div>
   );
 }
